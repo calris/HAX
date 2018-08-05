@@ -1,0 +1,72 @@
+{
+  "version": "2.0.0",
+"tasks": [
+        {
+                "label": "Clean build files",
+                "group": "build",
+                "type": "shell",
+                "command": "make",
+                "args": [
+                        "clean"
+                ],
+                "presentation": {
+                        "echo": true,
+                        "reveal": "always",
+                        "focus": false,
+                        "panel": "shared",
+                        "showReuseMessage": true
+                },
+                "problemMatcher": [
+                        "$gcc"
+                ]
+        },
+        {
+                "label": "Compile",
+                "group": "build",
+                "type": "shell",
+                "command": "make",
+                "presentation": {
+                        "echo": true,
+                        "reveal": "always",
+                        "focus": false,
+                        "panel": "shared",
+                        "showReuseMessage": true
+                },
+                "problemMatcher": [
+                        "$gcc"
+                ]
+        },
+        {
+                "label": "Flash program on device",
+                "dependsOn": "Compile",
+                "group": "test",
+                "type": "shell",
+                "command": "st-flash",
+                "args": [
+                        "--format",
+                        "ihex",
+                        "write",
+                        "./build/HAX.hex"
+                ],
+                "problemMatcher": []
+        },
+        {
+                "label": "Launch GDB server",
+                "dependsOn": [
+                        "Flash program on device"
+                ],
+                "group": "test",
+                "isBackground": true,
+                "command": "st-util",
+                "problemMatcher": []
+        },
+        {
+                "label": "Erase program on device",
+                "command": "st-flash",
+                "type": "shell",
+                "args": [
+                        "erase"
+                ]
+        }
+]
+}
