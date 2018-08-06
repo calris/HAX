@@ -42,8 +42,8 @@ void user_main(void)
 
         visHandle();
 
-        usart1_status = HAL_UART_Receive(&huart1, in_usart1, 1, 100);
-        usart6_status = HAL_UART_Receive(&huart6, in_usart6, 1, 100);
+        usart1_status = HAL_UART_Receive(&huart1, in_usart1, 1, 1);
+        usart6_status = HAL_UART_Receive(&huart6, in_usart6, 1, 1);
 
         if (usart1_status != HAL_TIMEOUT)
         {
