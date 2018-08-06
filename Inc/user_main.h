@@ -22,4 +22,6 @@
 
 void user_main(void);
 
+void HAX_USART1_IRQHandler(UART_HandleTypeDef *huart);
+
 #endif /* USER_MAIN_H_ */
