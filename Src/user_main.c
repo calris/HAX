@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <string.h>
 
 #include "stm32f4xx_hal.h"
 #include "user_main.h"
@@ -22,43 +23,95 @@
 #include "visEffect.h"
 
 extern UART_HandleTypeDef huart1;
-
 extern UART_HandleTypeDef huart6;
-extern DMA_HandleTypeDef hdma_usart6_rx;
-extern DMA_HandleTypeDef hdma_usart6_tx;
 
-uint8_t dma_buffer[20] = {0};
-uint8_t dma_buffer_ptr = 0;
-volatile uint8_t toggle = 0;
-
-
-void user_main(void)
+UART_HandleTypeDef *debug_uart(void)
 {
-        uint8_t in_usart6[10];
-        uint8_t in_usart1[10];
+        return &huart1;
+}
 
-        HAL_StatusTypeDef usart6_status;
-        HAL_StatusTypeDef usart1_status;
+UART_HandleTypeDef *rs485_uart(void)
+{
+        return &huart6;
+}
 
-        visHandle();
+#define BUFFER_SIZE     2
 
-        usart1_status = HAL_UART_Receive(&huart1, in_usart1, 1, 1);
-        usart6_status = HAL_UART_Receive(&huart6, in_usart6, 1, 1);
+uint8_t debug_rx_buffer[BUFFER_SIZE];
+uint8_t debug_tx_buffer[BUFFER_SIZE];
 
-        if (usart1_status != HAL_TIMEOUT)
+uint8_t rs485_rx_buffer[BUFFER_SIZE];
+uint8_t rs485_tx_buffer[BUFFER_SIZE];
+
+void user_code_1(void)
+{
+}
+
+void user_code_init(void)
+{
+}
+
+void user_code_sysinit(void)
+{
+}
+
+void user_code_2(void)
+{
+        HAL_UART_Receive_IT(debug_uart(), debug_rx_buffer, BUFFER_SIZE);
+
+        HAL_GPIO_WritePin(TX_EN_485_GPIO_Port, TX_EN_485_Pin, GPIO_PIN_RESET);
+        HAL_UART_Receive_DMA(rs485_uart(), rs485_rx_buffer, BUFFER_SIZE);
+}
+
+static void rs485_tx(uint8_t *tx_buffer, uint16_t len)
+{
+        HAL_GPIO_WritePin(TX_EN_485_GPIO_Port, TX_EN_485_Pin, GPIO_PIN_SET);
+        //HAL_UART_Transmit_DMA(rs485_uart(), tx_buffer, len);
+        HAL_UART_Transmit(rs485_uart(), tx_buffer, len, 1000);
+        HAL_GPIO_WritePin(TX_EN_485_GPIO_Port, TX_EN_485_Pin, GPIO_PIN_RESET);
+}
+
+static void debug_tx(uint8_t *tx_buffer, uint16_t len)
+{
+        HAL_UART_Transmit_IT(debug_uart(), tx_buffer, len);
+}
+
+void user_while(void)
+{
+        // visHandle();
+
+        blink_led(LED2_GPIO_Port, LED2_Pin, 500, 500, 1);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+        if (huart == debug_uart())
         {
-                HAL_UART_Transmit(&huart6, in_usart1, 1, 100);
+                memcpy(rs485_tx_buffer, debug_rx_buffer, BUFFER_SIZE);
+                rs485_tx(rs485_tx_buffer, BUFFER_SIZE);
+                HAL_UART_Receive_IT(debug_uart(), debug_rx_buffer, BUFFER_SIZE);
         }
-
-        if (usart6_status != HAL_TIMEOUT)
+        else if (huart == rs485_uart())
         {
-                HAL_GPIO_WritePin(TX_EN_485_GPIO_Port, TX_EN_485_Pin, GPIO_PIN_SET);
-                HAL_UART_Transmit(&huart1, in_usart6, 1, 100);
+                memcpy(debug_tx_buffer, rs485_rx_buffer, BUFFER_SIZE);
+                debug_tx(debug_tx_buffer, BUFFER_SIZE);
+
+                HAL_GPIO_WritePin(TX_EN_485_GPIO_Port, TX_EN_485_Pin, GPIO_PIN_RESET);
+                HAL_UART_Receive_DMA(rs485_uart(), rs485_rx_buffer, BUFFER_SIZE);
+        }
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+        if (huart == debug_uart())
+        {
+        }
+        else if (huart  == rs485_uart())
+        {
                 HAL_GPIO_WritePin(TX_EN_485_GPIO_Port, TX_EN_485_Pin, GPIO_PIN_RESET);
         }
 }
 
-void HAX_USART1_IRQHandler(UART_HandleTypeDef *huart)
+void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
 {
-
 }

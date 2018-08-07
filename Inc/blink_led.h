@@ -19,6 +19,8 @@
 #ifndef BLINK_LED_H_
 #define BLINK_LED_H_
 
+void wait_ms(uint32_t wait_time);
+
 void blink_led(GPIO_TypeDef* GPIOx,	\
 			   uint16_t GPIO_Pin,	\
 			   uint32_t on_time,	\

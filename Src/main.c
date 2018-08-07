@@ -42,7 +42,6 @@
 
 /* USER CODE BEGIN Includes */
 #include "user_main.h"
-#include "visEffect.h"
 
 /* USER CODE END Includes */
 
@@ -57,8 +56,6 @@ DMA_HandleTypeDef hdma_usart6_rx;
 DMA_HandleTypeDef hdma_usart6_tx;
 
 /* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,7 +84,7 @@ static void MX_TIM1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  user_code_1();
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -96,14 +93,14 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  user_code_init();
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  user_code_sysinit();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -114,9 +111,8 @@ int main(void)
   MX_USART6_UART_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-
+  user_code_2();
   /* USER CODE END 2 */
-  visInit();
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -125,7 +121,7 @@ int main(void)
     
 
   /* USER CODE END WHILE */
-        user_main();
+  user_while();
   /* USER CODE BEGIN 3 */
 
   }

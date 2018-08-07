@@ -43,3 +43,12 @@ void blink_led(GPIO_TypeDef *GPIOx,
                         ;
         }
 }
+
+void wait_ms(uint32_t wait_time)
+{
+        uint32_t start_tick;
+
+        start_tick = HAL_GetTick();
+        while (HAL_GetTick() < (start_tick + wait_time))
+                ;
+}

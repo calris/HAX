@@ -20,8 +20,10 @@
 #ifndef USER_MAIN_H_
 #define USER_MAIN_H_
 
-void user_main(void);
-
-void HAX_USART1_IRQHandler(UART_HandleTypeDef *huart);
+void user_code_1(void);
+void user_code_init(void);
+void user_code_sysinit(void);
+void user_code_2(void);
+void user_while(void);
 
 #endif /* USER_MAIN_H_ */
