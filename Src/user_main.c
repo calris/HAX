@@ -25,17 +25,21 @@
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart6;
 
-UART_HandleTypeDef *debug_uart(void)
-{
-        return &huart1;
-}
+struct led_data led_2;
+struct led_data led_3;
+struct led_data led_4;
 
-UART_HandleTypeDef *rs485_uart(void)
+UART_HandleTypeDef *debug_uart(void)
 {
         return &huart6;
 }
 
-#define BUFFER_SIZE     2
+UART_HandleTypeDef *rs485_uart(void)
+{
+        return &huart1;
+}
+
+#define BUFFER_SIZE     1
 
 uint8_t debug_rx_buffer[BUFFER_SIZE];
 uint8_t debug_tx_buffer[BUFFER_SIZE];
@@ -49,6 +53,16 @@ void user_code_1(void)
 
 void user_code_init(void)
 {
+        led_2.GPIOx = LED2_GPIO_Port;
+        led_2.GPIO_Pin = LED2_Pin;
+
+        led_3.GPIOx = LED3_GPIO_Port;
+        led_3.GPIO_Pin = LED3_Pin;
+
+        led_4.GPIOx = LED4_GPIO_Port;
+        led_4.GPIO_Pin = LED4_Pin;
+
+        visInit();
 }
 
 void user_code_sysinit(void)
@@ -66,9 +80,7 @@ void user_code_2(void)
 static void rs485_tx(uint8_t *tx_buffer, uint16_t len)
 {
         HAL_GPIO_WritePin(TX_EN_485_GPIO_Port, TX_EN_485_Pin, GPIO_PIN_SET);
-        //HAL_UART_Transmit_DMA(rs485_uart(), tx_buffer, len);
-        HAL_UART_Transmit(rs485_uart(), tx_buffer, len, 1000);
-        HAL_GPIO_WritePin(TX_EN_485_GPIO_Port, TX_EN_485_Pin, GPIO_PIN_RESET);
+        HAL_UART_Transmit_DMA(rs485_uart(), tx_buffer, len);
 }
 
 static void debug_tx(uint8_t *tx_buffer, uint16_t len)
@@ -78,9 +90,7 @@ static void debug_tx(uint8_t *tx_buffer, uint16_t len)
 
 void user_while(void)
 {
-        // visHandle();
-
-        blink_led(LED2_GPIO_Port, LED2_Pin, 500, 500, 1);
+        visHandle();
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)

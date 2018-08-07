@@ -21,10 +21,18 @@
 
 void wait_ms(uint32_t wait_time);
 
-void blink_led(GPIO_TypeDef* GPIOx,	\
-			   uint16_t GPIO_Pin,	\
-			   uint32_t on_time,	\
-			   uint32_t off_time,	\
-			   uint32_t repeats);
+struct led_data {
+        GPIO_TypeDef *GPIOx;
+        uint16_t GPIO_Pin;
+};
+
+void blink_led(struct led_data *ld,
+               uint32_t on_time,
+               uint32_t off_time,
+               uint32_t repeats);
+
+void led_on(struct led_data *ld, uint32_t on_time);
+
+void led_off(struct led_data *ld, uint32_t off_time);
 
 #endif /* BLINK_LED_H_ */

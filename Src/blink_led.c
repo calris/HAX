@@ -19,36 +19,26 @@
 #include "stm32f4xx_hal.h"
 #include "blink_led.h"
 
-void blink_led(GPIO_TypeDef *GPIOx,
-               uint16_t GPIO_Pin,
+void blink_led(struct led_data *ld,
                uint32_t on_time,
                uint32_t off_time,
                uint32_t repeats)
 {
-        uint32_t start_tick;
-        uint32_t i;
-
-        for (i = 0; i < repeats; i++)
+        for (uint16_t i = 0; i < repeats; i++)
         {
-                HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_SET);
-
-                start_tick = HAL_GetTick();
-                while (HAL_GetTick() < (start_tick + on_time))
-                        ;
-
-                HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_RESET);
-
-                start_tick = HAL_GetTick();
-                while (HAL_GetTick() < (start_tick + off_time))
-                        ;
+                led_on(ld, on_time);
+                led_off(ld, off_time);
         }
 }
 
-void wait_ms(uint32_t wait_time)
+void led_on(struct led_data *ld, uint32_t on_time)
 {
-        uint32_t start_tick;
+        HAL_GPIO_WritePin(ld->GPIOx, ld->GPIO_Pin, GPIO_PIN_SET);
+        HAL_Delay(on_time);
+}
 
-        start_tick = HAL_GetTick();
-        while (HAL_GetTick() < (start_tick + wait_time))
-                ;
+void led_off(struct led_data *ld, uint32_t off_time)
+{
+        HAL_GPIO_WritePin(ld->GPIOx, ld->GPIO_Pin, GPIO_PIN_RESET);
+        HAL_Delay(off_time);
 }
