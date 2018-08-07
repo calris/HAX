@@ -82,7 +82,7 @@ static void ws2812b_gpio_init(void)
 
 TIM_HandleTypeDef TIM1_handle;
 TIM_OC_InitTypeDef tim2OC1;
-TIM_OC_InitTypeDef tim2OC2;
+TIM_OC_InitTypeDef tim2OC3;
 
 uint32_t tim_period;
 uint32_t timer_reset_pulse_period;
@@ -98,7 +98,7 @@ static void TIM1_init(void)
         timer_reset_pulse_period = (SystemCoreClock / (320 * 60)); // 60us just to be sure
 
         uint32_t cc1 = (10 * tim_period) / 36;
-        uint32_t cc2 = (10 * tim_period) / 15;
+        uint32_t cc3 = (10 * tim_period) / 15;
 
         TIM1_handle.Instance = TIM1;
 
@@ -121,14 +121,14 @@ static void TIM1_init(void)
         tim2OC1.OCFastMode = TIM_OCFAST_DISABLE;
         HAL_TIM_PWM_ConfigChannel(&TIM1_handle, &tim2OC1, TIM_CHANNEL_1);
 
-        tim2OC2.OCMode = TIM_OCMODE_PWM1;
-        tim2OC2.OCPolarity = TIM_OCPOLARITY_HIGH;
-        tim2OC2.Pulse = cc2;
-        tim2OC2.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-        tim2OC2.OCFastMode = TIM_OCFAST_DISABLE;
-        tim2OC2.OCIdleState = TIM_OCIDLESTATE_RESET;
-        tim2OC2.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-        HAL_TIM_PWM_ConfigChannel(&TIM1_handle, &tim2OC2, TIM_CHANNEL_2);
+        tim2OC3.OCMode = TIM_OCMODE_PWM1;
+        tim2OC3.OCPolarity = TIM_OCPOLARITY_HIGH;
+        tim2OC3.Pulse = cc3;
+        tim2OC3.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+        tim2OC3.OCFastMode = TIM_OCFAST_DISABLE;
+        tim2OC3.OCIdleState = TIM_OCIDLESTATE_RESET;
+        tim2OC3.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+        HAL_TIM_PWM_ConfigChannel(&TIM1_handle, &tim2OC3, TIM_CHANNEL_3);
 
         HAL_TIM_Base_Start(&TIM1_handle);
         HAL_TIM_PWM_Start(&TIM1_handle, TIM_CHANNEL_1);
@@ -138,7 +138,7 @@ static void TIM1_init(void)
 
 DMA_HandleTypeDef dmaUpdate;
 DMA_HandleTypeDef dmaCC1;
-DMA_HandleTypeDef dmaCC2;
+DMA_HandleTypeDef dmaCC3;
 #define BUFFER_SIZE (sizeof(ws2812bDmaBitBuffer) / sizeof(uint16_t))
 
 uint32_t dummy;
@@ -200,35 +200,35 @@ static void DMA2_init(void)
         HAL_DMA_Start(&dmaCC1, (uint32_t)ws2812bDmaBitBuffer, (uint32_t)(&WS2812B_PORT->BSRR) + 2, BUFFER_SIZE); //BRR
         //HAL_DMA_Start(&dmaCC1, (uint32_t)ws2812bDmaBitBuffer, (uint32_t)&dummy, BUFFER_SIZE); //BRR
 
-        // TIM2 CC2 event
-        dmaCC2.Init.Direction = DMA_MEMORY_TO_PERIPH;
-        dmaCC2.Init.PeriphInc = DMA_PINC_DISABLE;
-        dmaCC2.Init.MemInc = DMA_MINC_DISABLE;
-        dmaCC2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-        dmaCC2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-        dmaCC2.Init.Mode = DMA_CIRCULAR;
-        dmaCC2.Init.Priority = DMA_PRIORITY_VERY_HIGH;
-        dmaCC2.Init.Channel = DMA_CHANNEL_6;
+        // TIM2 CC3 event
+        dmaCC3.Init.Direction = DMA_MEMORY_TO_PERIPH;
+        dmaCC3.Init.PeriphInc = DMA_PINC_DISABLE;
+        dmaCC3.Init.MemInc = DMA_MINC_DISABLE;
+        dmaCC3.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+        dmaCC3.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+        dmaCC3.Init.Mode = DMA_CIRCULAR;
+        dmaCC3.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+        dmaCC3.Init.Channel = DMA_CHANNEL_6;
 
-        dmaCC2.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-        dmaCC2.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-        dmaCC2.Init.MemBurst = DMA_MBURST_SINGLE;
-        dmaCC2.Init.PeriphBurst = DMA_PBURST_SINGLE;
+        dmaCC3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+        dmaCC3.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+        dmaCC3.Init.MemBurst = DMA_MBURST_SINGLE;
+        dmaCC3.Init.PeriphBurst = DMA_PBURST_SINGLE;
 
-        dmaCC2.Instance = DMA2_Stream2;
+        dmaCC3.Instance = DMA2_Stream6;
 
-        dmaCC2.XferCpltCallback = DMA_TransferCompleteHandler;
-        dmaCC2.XferHalfCpltCallback = DMA_TransferHalfHandler;
-        dmaCC2.XferErrorCallback = DMA_TransferError;
+        dmaCC3.XferCpltCallback = DMA_TransferCompleteHandler;
+        dmaCC3.XferHalfCpltCallback = DMA_TransferHalfHandler;
+        dmaCC3.XferErrorCallback = DMA_TransferError;
 
-        HAL_DMA_DeInit(&dmaCC2);
-        HAL_DMA_Init(&dmaCC2);
-        HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
-        HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-        HAL_DMA_Start_IT(&dmaCC2, (uint32_t)WS2812_IO_Low, (uint32_t)&WS2812B_PORT->BSRR, BUFFER_SIZE);
-        //HAL_DMA_Start_IT(&dmaCC2, (uint32_t)WS2812_IO_Low, (uint32_t)&dummy, BUFFER_SIZE);
+        HAL_DMA_DeInit(&dmaCC3);
+        HAL_DMA_Init(&dmaCC3);
+        HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
+        HAL_DMA_Start_IT(&dmaCC3, (uint32_t)WS2812_IO_Low, (uint32_t)&WS2812B_PORT->BSRR, BUFFER_SIZE);
+        //HAL_DMA_Start_IT(&dmaCC3, (uint32_t)WS2812_IO_Low, (uint32_t)&dummy, BUFFER_SIZE);
 
-        //__HAL_LINKDMA(&Tim2Handle, hdma,  &dmaCC2);
+        //__HAL_LINKDMA(&Tim2Handle, hdma,  &dmaCC3);
 }
 
 static void loadNextFramebufferData(WS2812_BufferItem *bItem, uint32_t row)
@@ -263,12 +263,12 @@ static void WS2812_sendbuf()
         // clear all DMA flags
         __HAL_DMA_CLEAR_FLAG(&dmaUpdate, DMA_FLAG_TCIF1_5 | DMA_FLAG_HTIF1_5 | DMA_FLAG_TEIF1_5);
         __HAL_DMA_CLEAR_FLAG(&dmaCC1, DMA_FLAG_TCIF1_5 | DMA_FLAG_HTIF1_5 | DMA_FLAG_TEIF1_5);
-        __HAL_DMA_CLEAR_FLAG(&dmaCC2, DMA_FLAG_TCIF2_6 | DMA_FLAG_HTIF2_6 | DMA_FLAG_TEIF2_6);
+        __HAL_DMA_CLEAR_FLAG(&dmaCC3, DMA_FLAG_TCIF2_6 | DMA_FLAG_HTIF2_6 | DMA_FLAG_TEIF2_6);
 
         // configure the number of bytes to be transferred by the DMA controller
         dmaUpdate.Instance->NDTR = BUFFER_SIZE;
         dmaCC1.Instance->NDTR = BUFFER_SIZE;
-        dmaCC2.Instance->NDTR = BUFFER_SIZE;
+        dmaCC3.Instance->NDTR = BUFFER_SIZE;
 
         // clear all TIM2 flags
         __HAL_TIM_CLEAR_FLAG(&TIM1_handle, TIM_FLAG_UPDATE | TIM_FLAG_CC1 | TIM_FLAG_CC2 | TIM_FLAG_CC3 | TIM_FLAG_CC4);
@@ -276,12 +276,12 @@ static void WS2812_sendbuf()
         // enable DMA channels
         __HAL_DMA_ENABLE(&dmaUpdate);
         __HAL_DMA_ENABLE(&dmaCC1);
-        __HAL_DMA_ENABLE(&dmaCC2);
+        __HAL_DMA_ENABLE(&dmaCC3);
 
         // IMPORTANT: enable the TIM2 DMA requests AFTER enabling the DMA channels!
         __HAL_TIM_ENABLE_DMA(&TIM1_handle, TIM_DMA_UPDATE);
         __HAL_TIM_ENABLE_DMA(&TIM1_handle, TIM_DMA_CC1);
-        __HAL_TIM_ENABLE_DMA(&TIM1_handle, TIM_DMA_CC2);
+        __HAL_TIM_ENABLE_DMA(&TIM1_handle, TIM_DMA_CC3);
 
         TIM1->CNT = tim_period - 1;
 
@@ -337,12 +337,12 @@ void DMA_TransferCompleteHandler(DMA_HandleTypeDef *DmaHandle)
                 // Disable DMA
                 __HAL_DMA_DISABLE(&dmaUpdate);
                 __HAL_DMA_DISABLE(&dmaCC1);
-                __HAL_DMA_DISABLE(&dmaCC2);
+                __HAL_DMA_DISABLE(&dmaCC3);
 
                 // Disable the DMA requests
                 __HAL_TIM_DISABLE_DMA(&TIM1_handle, TIM_DMA_UPDATE);
                 __HAL_TIM_DISABLE_DMA(&TIM1_handle, TIM_DMA_CC1);
-                __HAL_TIM_DISABLE_DMA(&TIM1_handle, TIM_DMA_CC2);
+                __HAL_TIM_DISABLE_DMA(&TIM1_handle, TIM_DMA_CC3);
 
                 // Set 50us period for Treset pulse
                 //TIM2->PSC = 1000; // For this long period we need prescaler 1000
@@ -380,7 +380,7 @@ void DMA_TransferCompleteHandler(DMA_HandleTypeDef *DmaHandle)
 #endif
 }
 
-void DMA2_Stream2_IRQHandler(void)
+void DMA2_Stream6_IRQHandler(void)
 {
 
 #if defined(LED_BLUE_PORT)
@@ -388,7 +388,7 @@ void DMA2_Stream2_IRQHandler(void)
 #endif
 
         // Check the interrupt and clear flag
-        HAL_DMA_IRQHandler(&dmaCC2);
+        HAL_DMA_IRQHandler(&dmaCC3);
 
 #if defined(LED_BLUE_PORT)
         LED_BLUE_PORT->BSRR = LED_BLUE_PIN << 16;

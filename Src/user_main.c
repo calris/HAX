@@ -61,8 +61,6 @@ void user_code_init(void)
 
         led_4.GPIOx = LED4_GPIO_Port;
         led_4.GPIO_Pin = LED4_Pin;
-
-        visInit();
 }
 
 void user_code_sysinit(void)
@@ -75,6 +73,7 @@ void user_code_2(void)
 
         HAL_GPIO_WritePin(TX_EN_485_GPIO_Port, TX_EN_485_Pin, GPIO_PIN_RESET);
         HAL_UART_Receive_DMA(rs485_uart(), rs485_rx_buffer, BUFFER_SIZE);
+        visInit();
 }
 
 static void rs485_tx(uint8_t *tx_buffer, uint16_t len)
